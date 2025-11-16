@@ -158,8 +158,63 @@ const getAllColleges = async (req, res) => {
   }
 };
 
+/**
+ * Check if college exists (for testing purposes)
+ * @route GET /api/check/:collegeEmail/:collegeName/:activationCode
+ */
+const checkCollege = async (req, res) => {
+  try {
+    const { collegeEmail, collegeName, activationCode } = req.params;
+
+    // Input validation
+    if (!collegeEmail || !collegeName || !activationCode) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "All parameters are required: collegeEmail, collegeName, activationCode",
+        exists: false,
+      });
+    }
+
+    // Find college with matching details
+    const college = await College.findOne({
+      collegeEmail: collegeEmail.toLowerCase().trim(),
+      collegeName: decodeURIComponent(collegeName).trim(),
+      activationCode: activationCode.trim(),
+    });
+
+    if (college) {
+      return res.status(200).json({
+        success: true,
+        message: "College exists in database",
+        exists: true,
+        data: {
+          collegeId: college._id,
+          collegeName: college.collegeName,
+          collegeEmail: college.collegeEmail,
+          isActive: college.isActive,
+        },
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: "College not found in database",
+        exists: false,
+      });
+    }
+  } catch (error) {
+    console.error("Check college error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during check",
+      exists: false,
+    });
+  }
+};
+
 module.exports = {
   validateCollege,
   registerCollege,
   getAllColleges,
+  checkCollege,
 };
