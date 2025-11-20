@@ -34,6 +34,10 @@ const collegeSchema = new mongoose.Schema(
     lastValidated: {
       type: Date,
     },
+    Student: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
