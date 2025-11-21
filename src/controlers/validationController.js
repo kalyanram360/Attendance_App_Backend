@@ -76,7 +76,7 @@ const validateCollege = async (req, res) => {
  */
 const registerCollege = async (req, res) => {
   try {
-    const { collegeEmail, collegeName, activationCode } = req.body;
+    const { collegeEmail, collegeName, activationCode, Student } = req.body;
 
     if (!collegeEmail || !collegeName || !activationCode) {
       return res.status(400).json({
@@ -107,6 +107,7 @@ const registerCollege = async (req, res) => {
       collegeEmail: collegeEmail.toLowerCase().trim(),
       collegeName: collegeName.trim(),
       activationCode: activationCode.trim(),
+      Student: Student !== undefined ? Student : false,
     });
 
     await newCollege.save();
@@ -188,12 +189,7 @@ const checkCollege = async (req, res) => {
         success: true,
         message: "College exists in database",
         exists: true,
-        data: {
-          collegeId: college._id,
-          collegeName: college.collegeName,
-          collegeEmail: college.collegeEmail,
-          isActive: college.isActive,
-        },
+        data: college,
       });
     } else {
       return res.status(200).json({
