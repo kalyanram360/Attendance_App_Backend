@@ -104,12 +104,60 @@ const getAllStudents = async (req, res) => {
 };
 
 /**
+ * Check if student exists and return complete info
+ * @route GET /api/student/check/:collegeEmail
+ */
+const checkStudent = async (req, res) => {
+  try {
+    const { collegeEmail } = req.params;
+
+    if (!collegeEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "College email is required",
+        exists: false,
+        data: null,
+      });
+    }
+
+    // Find student by email
+    const student = await Student.findOne({
+      collegeEmail: decodeURIComponent(collegeEmail).toLowerCase().trim(),
+    }).select("-__v");
+
+    if (student) {
+      return res.status(200).json({
+        success: true,
+        message: "Student found in database",
+        exists: true,
+        data: student,
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: "Student not found in database",
+        exists: false,
+        data: null,
+      });
+    }
+  } catch (error) {
+    console.error("Check student error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during student check",
+      exists: false,
+      data: null,
+    });
+  }
+};
+
+/**
  * Get all teachers
  * @route GET /api/teachers
  */
 
 module.exports = {
   registerStudent,
-
+  checkStudent,
   getAllStudents,
 };

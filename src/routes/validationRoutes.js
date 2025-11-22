@@ -9,11 +9,13 @@ const {
 const {
   registerTeacher,
   getAllTeachers,
+  checkTeacher,
 } = require("../controlers/Teacher.Controlers");
 
 const {
   registerStudent,
   getAllStudents,
+  checkStudent,
 } = require("../controlers/Student.controlers");
 
 // Main validation endpoint for Android app
@@ -27,9 +29,11 @@ router.get("/check/:collegeEmail/:collegeName/:activationCode", checkCollege);
 // Student routes
 router.post("/student/register", registerStudent);
 router.get("/students", getAllStudents);
+router.get("/student/check/:collegeEmail", checkStudent);
 
 // Teacher routes
 router.post("/teacher/register", registerTeacher);
 router.get("/teachers", getAllTeachers);
+router.get("/teacher/check/:collegeEmail", checkTeacher);
 
 module.exports = router;
