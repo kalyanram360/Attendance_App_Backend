@@ -18,6 +18,8 @@ const {
   checkStudent,
 } = require("../controlers/Student.controlers");
 
+const { createClass } = require("../controlers/CreateClass.Controlers");
+
 // Main validation endpoint for Android app
 router.post("/validate", validateCollege);
 
