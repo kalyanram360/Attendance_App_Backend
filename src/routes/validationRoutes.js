@@ -36,4 +36,7 @@ router.post("/teacher/register", registerTeacher);
 router.get("/teachers", getAllTeachers);
 router.get("/teacher/check/:collegeEmail", checkTeacher);
 
+//class routes
+router.post("/class/create", createClass);
+
 module.exports = router;
