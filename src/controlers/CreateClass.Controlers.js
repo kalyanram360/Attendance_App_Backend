@@ -116,6 +116,61 @@ const createClass = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/class/current?branch=CSE&section=A&year=3
+ * Returns the most recent class (if any) that contains the branch/section/year.
+ */
+const getCurrentClass = async (req, res) => {
+  try {
+    const { branch, section, year } = req.query;
+    if (!branch || !section || !year) {
+      return res.status(400).json({
+        success: false,
+        message: "branch, section and year are required",
+      });
+    }
+
+    const numericYear = parseInt(year, 10);
+    // Define what "ongoing" means. Here we treat classes created within the last 6 hours as ongoing.
+    const ongoingWindowMs = 6 * 60 * 60 * 1000;
+    const since = new Date(Date.now() - ongoingWindowMs);
+
+    // Find a class that contains that branch and a section with the given name and year
+    const found = await NewClass.findOne({
+      createdAt: { $gte: since },
+      branches: {
+        $elemMatch: {
+          branchName: branch.trim(),
+          sections: {
+            $elemMatch: {
+              sectionName: section.trim(),
+              year: numericYear,
+            },
+          },
+        },
+      },
+    }).select("-__v");
+
+    if (!found) {
+      return res.status(200).json({
+        success: true,
+        exists: false,
+        data: null,
+        message: "No ongoing class found",
+      });
+    }
+
+    // Optional: you can extract only the matched branch/section on the client.
+    return res.status(200).json({ success: true, exists: true, data: found });
+  } catch (err) {
+    console.error("GET /api/class/current error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error", error: err.message });
+  }
+};
+
 module.exports = {
   createClass,
+  getCurrentClass,
 };
