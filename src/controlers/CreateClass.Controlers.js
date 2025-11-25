@@ -132,7 +132,7 @@ const getCurrentClass = async (req, res) => {
 
     const numericYear = parseInt(year, 10);
     // Define what "ongoing" means. Here we treat classes created within the last 6 hours as ongoing.
-    const ongoingWindowMs = 6 * 60 * 60 * 1000;
+    const ongoingWindowMs = 144 * 60 * 60 * 1000;
     const since = new Date(Date.now() - ongoingWindowMs);
 
     // Find a class that contains that branch and a section with the given name and year
