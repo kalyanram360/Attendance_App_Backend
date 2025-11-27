@@ -170,8 +170,84 @@ const getCurrentClass = async (req, res) => {
   }
 };
 
+/**
+ * Mark a student present by class token and roll number
+ * @route PATCH /api/class/:token/mark/:rollNo
+ */
+const markStudentPresent = async (req, res) => {
+  try {
+    const { token, rollNo } = req.params;
+    if (!token || !rollNo) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and rollNo are required",
+        data: null,
+      });
+    }
+
+    const classDoc = await NewClass.findOne({ token: token.trim() });
+    if (!classDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+        data: null,
+      });
+    }
+
+    const decodedRoll = decodeURIComponent(rollNo).trim();
+    let studentFound = null;
+
+    // Search through branches -> sections -> students
+    for (const branch of classDoc.branches) {
+      for (const section of branch.sections) {
+        const student = section.students.find((s) => s.rollNo === decodedRoll);
+        if (student) {
+          student.present = true;
+          studentFound = {
+            rollNo: student.rollNo,
+            name: student.name,
+            present: student.present,
+            branch: branch.branchName,
+            section: section.sectionName,
+            year: section.year,
+          };
+          break;
+        }
+      }
+      if (studentFound) break;
+    }
+
+    if (!studentFound) {
+      return res.status(404).json({
+        success: false,
+        message: "Student with given roll number not found in this class",
+        data: null,
+      });
+    }
+
+    await classDoc.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Student marked present",
+      data: {
+        token: classDoc.token,
+        student: studentFound,
+      },
+    });
+  } catch (error) {
+    console.error("Mark student present error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while marking student present",
+      data: null,
+    });
+  }
+};
+
 module.exports = {
   createClass,
   getCurrentClass,
+  markStudentPresent,
 };
 // ok

@@ -44,5 +44,6 @@ router.get("/teacher/check/:collegeEmail", checkTeacher);
 //class routes
 router.post("/class/create", createClass);
 router.get("/class/current", getCurrentClass);
+router.patch("/class/:token/mark/:rollNo", markStudentPresent);
 
 module.exports = router;
