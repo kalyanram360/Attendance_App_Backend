@@ -172,7 +172,7 @@ const getCurrentClass = async (req, res) => {
 
 /**
  * Mark a student present by class token and roll number
- * @route PATCH /api/class/:token/mark/:rollNo
+ * @route PATCH /api/class/mark/:token/:rollNo
  */
 const markStudentPresent = async (req, res) => {
   try {
