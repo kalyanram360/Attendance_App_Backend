@@ -245,9 +245,192 @@ const markStudentPresent = async (req, res) => {
   }
 };
 
+// ...existing code...
+
+/**
+ * Get all branches and students for a given class token
+ * @route GET /api/class/branches/:token
+ */
+const getClassBranches = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token is required",
+        data: null,
+      });
+    }
+
+    const classDoc = await NewClass.findOne({
+      token: token.trim(),
+    }).select("-__v");
+
+    if (!classDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+        data: null,
+      });
+    }
+
+    // Format response with all branches and their sections/students
+    const branchesData = classDoc.branches.map((branch) => {
+      const sectionsData = branch.sections.map((section) => {
+        const presentCount = section.students.filter(
+          (s) => s.present === true
+        ).length;
+
+        return {
+          sectionName: section.sectionName,
+          year: section.year,
+          totalStudents: section.students.length,
+          presentStudents: presentCount,
+          absentStudents: section.students.length - presentCount,
+          students: section.students.map((student) => ({
+            rollNo: student.rollNo,
+            name: student.name,
+            present: student.present,
+          })),
+        };
+      });
+
+      return {
+        branchName: branch.branchName,
+        totalSections: branch.sections.length,
+        sections: sectionsData,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Class branches and students retrieved successfully",
+      data: {
+        classId: classDoc._id,
+        token: classDoc.token,
+        teacher: classDoc.teacher,
+        branches: branchesData,
+      },
+    });
+  } catch (error) {
+    console.error("Get class branches error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching branches",
+      data: null,
+    });
+  }
+};
+
+/**
+ * Get attendance summary for a class token
+ * @route GET /api/class/attendance-summary/:token
+ */
+const getAttendanceSummary = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token is required",
+        data: null,
+      });
+    }
+
+    const classDoc = await NewClass.findOne({
+      token: token.trim(),
+    }).select("-__v");
+
+    if (!classDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+        data: null,
+      });
+    }
+
+    let totalStudents = 0;
+    let totalPresent = 0;
+
+    const branchesSummary = classDoc.branches.map((branch) => {
+      let branchTotal = 0;
+      let branchPresent = 0;
+
+      const sectionsSummary = branch.sections.map((section) => {
+        const presentCount = section.students.filter(
+          (s) => s.present === true
+        ).length;
+        const sectionTotal = section.students.length;
+        const attendancePercentage =
+          sectionTotal > 0
+            ? ((presentCount / sectionTotal) * 100).toFixed(2)
+            : 0;
+
+        branchTotal += sectionTotal;
+        branchPresent += presentCount;
+        totalStudents += sectionTotal;
+        totalPresent += presentCount;
+
+        return {
+          sectionName: section.sectionName,
+          year: section.year,
+          total: sectionTotal,
+          present: presentCount,
+          absent: sectionTotal - presentCount,
+          attendancePercentage: parseFloat(attendancePercentage),
+        };
+      });
+
+      const branchAttendancePercentage =
+        branchTotal > 0 ? ((branchPresent / branchTotal) * 100).toFixed(2) : 0;
+
+      return {
+        branchName: branch.branchName,
+        total: branchTotal,
+        present: branchPresent,
+        absent: branchTotal - branchPresent,
+        attendancePercentage: parseFloat(branchAttendancePercentage),
+        sections: sectionsSummary,
+      };
+    });
+
+    const overallAttendancePercentage =
+      totalStudents > 0 ? ((totalPresent / totalStudents) * 100).toFixed(2) : 0;
+
+    return res.status(200).json({
+      success: true,
+      message: "Attendance summary retrieved successfully",
+      data: {
+        classId: classDoc._id,
+        token: classDoc.token,
+        teacher: classDoc.teacher,
+        overall: {
+          totalStudents: totalStudents,
+          presentStudents: totalPresent,
+          absentStudents: totalStudents - totalPresent,
+          attendancePercentage: parseFloat(overallAttendancePercentage),
+        },
+        branches: branchesSummary,
+      },
+    });
+  } catch (error) {
+    console.error("Get attendance summary error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching attendance summary",
+      data: null,
+    });
+  }
+};
+
+// ...existing code...
+
 module.exports = {
   createClass,
   getCurrentClass,
   markStudentPresent,
+  getClassBranches,
+  getAttendanceSummary,
 };
-// ok
