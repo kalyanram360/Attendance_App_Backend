@@ -9,14 +9,14 @@ const mongoose = require("mongoose");
  */
 const createClass = async (req, res) => {
   try {
-    const { teacherEmail, branch, section, year, token } = req.body;
+    const { teacherEmail, branch, section, year, subject, token } = req.body;
 
     // Input validation
-    if (!teacherEmail || !branch || !section || !year || !token) {
+    if (!teacherEmail || !branch || !section || !year || !subject || !token) {
       return res.status(400).json({
         success: false,
         message:
-          "All fields are required: teacherEmail, branch, section, year, token",
+          "All fields are required: teacherEmail, branch, section, year, subject, token",
         data: null,
       });
     }
@@ -76,6 +76,7 @@ const createClass = async (req, res) => {
         email: teacher.collegeEmail,
       },
       token: token.trim(),
+      subject: subject.trim(),
       branches: [
         {
           branchName: branch.trim(),
@@ -102,6 +103,7 @@ const createClass = async (req, res) => {
         branch: branch.trim(),
         section: section.trim(),
         year: parseInt(year),
+        subject: subject.trim(),
         totalStudents: formattedStudents.length,
         students: formattedStudents,
       },

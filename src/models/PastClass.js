@@ -1,4 +1,3 @@
-// models/NewClass.js
 const mongoose = require("mongoose");
 
 const StudentSchema = new mongoose.Schema(
@@ -19,7 +18,7 @@ const StudentSchema = new mongoose.Schema(
     },
   },
   { _id: false }
-); // don't create subdocument _id for each student unless you want it
+);
 
 const SectionSchema = new mongoose.Schema(
   {
@@ -55,49 +54,48 @@ const BranchSchema = new mongoose.Schema(
   { _id: true }
 );
 
-const NewClassSchema = new mongoose.Schema(
+const PastClassesSchema = new mongoose.Schema(
   {
     teacher: {
-      name: { type: String, trim: true, required: true },
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+      },
       email: {
         type: String,
         required: true,
         trim: true,
         lowercase: true,
-        match: [
-          /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-          "Please provide a valid email address",
-        ],
       },
+    },
+    token: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
     },
     subject: {
       type: String,
       required: true,
       trim: true,
     },
-    token: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true,
-    },
     branches: {
       type: [BranchSchema],
       default: [],
     },
+    completedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-// Optional: convenience instance method to find a section quickly
-NewClassSchema.methods.findSection = function (branchName, sectionName, year) {
-  const branch = this.branches.find((b) => b.branchName === branchName);
-  if (!branch) return null;
-  return (
-    branch.sections.find(
-      (s) => s.sectionName === sectionName && s.year === year
-    ) || null
-  );
-};
+// Index for faster queries
+PastClassesSchema.index({ token: 1 });
+PastClassesSchema.index({ "teacher.email": 1 });
 
-module.exports = mongoose.model("NewClass", NewClassSchema);
+module.exports = mongoose.model("PastClasses", PastClassesSchema);
