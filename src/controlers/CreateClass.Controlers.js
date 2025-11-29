@@ -1,6 +1,7 @@
 const NewClass = require("../models/NewClass");
 const Teacher = require("../models/Teacher");
 const Student = require("../models/Student");
+const mongoose = require("mongoose");
 
 /**
  * Create a new class with teacher and students
@@ -246,42 +247,42 @@ const markStudentPresent = async (req, res) => {
 };
 
 // ...existing code...
+const resolveClassLookup = (param) => {
+  if (!param) return null;
+  const v = decodeURIComponent(String(param)).trim();
+  if (mongoose.Types.ObjectId.isValid(v)) return { _id: v };
+  return { token: v };
+};
 
 /**
- * Get all branches and students for a given class token
- * @route GET /api/class/branches/:token
+ * Get all branches and students for a given class token or id
+ * supports routes: GET /api/class/:token/branches  AND  GET /api/class/branches/:classId
  */
 const getClassBranches = async (req, res) => {
   try {
-    const { token } = req.params;
-
-    if (!token) {
+    const param = req.params.token || req.params.classId;
+    if (!param) {
       return res.status(400).json({
         success: false,
-        message: "Token is required",
+        message: "Token/classId is required",
         data: null,
       });
     }
 
-    const classDoc = await NewClass.findOne({
-      token: token.trim(),
-    }).select("-__v");
+    const query = resolveClassLookup(param);
+    const classDoc = await NewClass.findOne(query).select("-__v");
+    if (!classDoc)
+      return res
+        .status(404)
+        .json({ success: false, message: "Class not found", data: null });
 
-    if (!classDoc) {
-      return res.status(404).json({
-        success: false,
-        message: "Class not found",
-        data: null,
-      });
-    }
-
-    // Format response with all branches and their sections/students
-    const branchesData = classDoc.branches.map((branch) => {
-      const sectionsData = branch.sections.map((section) => {
+    const branchesData = classDoc.branches.map((branch) => ({
+      branchName: branch.branchName,
+      totalSections: branch.sections.length,
+      sections: branch.sections.map((section) => {
         const presentCount = section.students.filter(
           (s) => s.present === true
         ).length;
-
         return {
           sectionName: section.sectionName,
           year: section.year,
@@ -294,14 +295,8 @@ const getClassBranches = async (req, res) => {
             present: student.present,
           })),
         };
-      });
-
-      return {
-        branchName: branch.branchName,
-        totalSections: branch.sections.length,
-        sections: sectionsData,
-      };
-    });
+      }),
+    }));
 
     return res.status(200).json({
       success: true,
