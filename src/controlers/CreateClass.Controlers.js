@@ -1,6 +1,7 @@
 const NewClass = require("../models/NewClass");
 const Teacher = require("../models/Teacher");
 const Student = require("../models/Student");
+const PastClasses = require("../models/PastClass");
 const mongoose = require("mongoose");
 
 /**
@@ -422,6 +423,100 @@ const getAttendanceSummary = async (req, res) => {
   }
 };
 
+/**
+ * Archive a class into PastClasses collection
+ * Accepts either a full `classObject` in the request body or a `token`/`classId` to look up
+ * @route POST /api/class/archive
+ */
+const archiveClass = async (req, res) => {
+  try {
+    // Accept either a JSON class object or token/classId
+    let classObject = req.body.classObject;
+    const lookupParam = req.body.token || req.body.classId;
+
+    if (!classObject && !lookupParam) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Provide either `classObject` in body or `token`/`classId` to lookup",
+        data: null,
+      });
+    }
+
+    if (!classObject && lookupParam) {
+      const query = resolveClassLookup(lookupParam);
+      classObject = await NewClass.findOne(query).lean();
+      if (!classObject) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Class not found", data: null });
+      }
+    }
+
+    // Ensure we have an object now
+    if (!classObject) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid class data", data: null });
+    }
+
+    // Prevent duplicate past entry by token if available
+    const tokenValue = classObject.token || String(classObject._id || "");
+    if (tokenValue) {
+      const existingPast = await PastClasses.findOne({
+        token: tokenValue.trim(),
+      });
+      if (existingPast) {
+        return res
+          .status(409)
+          .json({
+            success: false,
+            message: "This class is already archived",
+            data: null,
+          });
+      }
+    }
+
+    // Build past class doc
+    const pastDoc = new PastClasses({
+      teacher: classObject.teacher || { name: "", email: "" },
+      token: tokenValue.trim() || undefined,
+      subject: classObject.subject || "",
+      branches: classObject.branches || [],
+      completedAt: new Date(),
+    });
+
+    await pastDoc.save();
+
+    // Delete the original NewClass after archiving.
+    // If tokenValue is an ObjectId, delete by _id, otherwise delete by token.
+    if (tokenValue) {
+      if (mongoose.Types.ObjectId.isValid(tokenValue)) {
+        await NewClass.deleteOne({ _id: tokenValue });
+      } else {
+        await NewClass.deleteOne({ token: tokenValue });
+      }
+    }
+
+    return res
+      .status(201)
+      .json({
+        success: true,
+        message: "Class archived to PastClasses",
+        data: pastDoc,
+      });
+  } catch (error) {
+    console.error("Archive class error:", error);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error while archiving class",
+        data: null,
+      });
+  }
+};
+
 // ...existing code...
 
 module.exports = {
@@ -430,4 +525,5 @@ module.exports = {
   markStudentPresent,
   getClassBranches,
   getAttendanceSummary,
+  archiveClass,
 };

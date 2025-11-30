@@ -24,6 +24,7 @@ const {
   markStudentPresent,
   getClassBranches,
   getAttendanceSummary,
+  archiveClass,
 } = require("../controlers/CreateClass.Controlers");
 
 // Main validation endpoint for Android app
@@ -50,5 +51,6 @@ router.get("/class/current", getCurrentClass);
 router.patch("/class/mark/:token/:rollNo", markStudentPresent);
 router.get("/class/branches/:classId", getClassBranches);
 router.get("/class/attendance-summary/:classId", getAttendanceSummary);
+router.post("/class/archive", archiveClass);
 
 module.exports = router;
