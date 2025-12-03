@@ -2,6 +2,7 @@ const Attendance = require("../models/Attendance.js");
 
 // "/attendance" - POST
 
+// "/attendance" - POST
 const postAttendance = async (req, res) => {
   try {
     const { year, branch, section, subject, date, attendance } = req.body;
@@ -10,52 +11,77 @@ const postAttendance = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    let record = await Attendance.findOne({ year, branch, section, subject });
+    // --- START: CORRECTED LOGIC ---
 
-    // If no document exists → create new
-    if (!record) {
-      record = new Attendance({
-        year,
-        branch,
-        section,
-        subject,
-        students: [],
-      });
+    // 1. Find or create the top-level Year document
+    let yearDoc = await Attendance.findOne({ year: year });
+    if (!yearDoc) {
+      yearDoc = new Attendance({ year: year, branches: [] });
     }
+
+    // 2. Find or create the Branch document within the Year
+    let branchDoc = yearDoc.branches.find((b) => b.branchName === branch);
+    if (!branchDoc) {
+      branchDoc = { branchName: branch, sections: [] };
+      yearDoc.branches.push(branchDoc);
+    }
+
+    // 3. Find or create the Section document within the Branch
+    let sectionDoc = branchDoc.sections.find((s) => s.sectionName === section);
+    if (!sectionDoc) {
+      sectionDoc = { sectionName: section, subjects: [] };
+      branchDoc.sections.push(sectionDoc);
+    }
+
+    // 4. Find or create the Subject document within the Section
+    let subjectDoc = sectionDoc.subjects.find((s) => s.subjectName === subject);
+    if (!subjectDoc) {
+      subjectDoc = { subjectName: subject, students: [] };
+      sectionDoc.subjects.push(subjectDoc);
+    }
+
+    // --- END: CORRECTED LOGIC ---
 
     const attendanceDate = new Date(date);
 
+    // Now, `subjectDoc.students` is guaranteed to be an array
     attendance.forEach(({ rollNumber, present }) => {
-      let student = record.students.find((s) => s.rollNumber === rollNumber);
+      // Your Mongoose schema uses `rollNo`, but your request sends `rollNumber`. Let's align them.
+      let student = subjectDoc.students.find((s) => s.rollNo === rollNumber);
 
       if (!student) {
-        // New student entry
+        // New student entry for this subject
         student = {
-          rollNumber,
+          rollNo: rollNumber, // Use the schema's field name
           attendance: [],
         };
-        record.students.push(student);
+        subjectDoc.students.push(student);
       }
 
-      // Check if attendance for this date exists
+      // Check if attendance for this date already exists
       const existingDate = student.attendance.find(
         (a) => a.date.toDateString() === attendanceDate.toDateString()
       );
 
       if (existingDate) {
-        existingDate.present = present; // Update present/absent
+        existingDate.present = present; // Update if exists
       } else {
         student.attendance.push({ date: attendanceDate, present });
       }
     });
 
-    await record.save();
+    // Save the entire top-level document
+    await yearDoc.save();
 
-    res.json({ message: "Attendance updated successfully", record });
+    res.json({ message: "Attendance updated successfully", record: yearDoc });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server Error" });
   }
+};
+
+module.exports = {
+  postAttendance,
 };
 
 const getAttendance = async (req, res) => {
