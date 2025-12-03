@@ -35,28 +35,29 @@ const postAttendance = async (req, res) => {
 
     // Loop through the attendance data sent from the Android app
     attendance.forEach(({ rollNumber, present }) => {
-      // ----- THIS IS THE FIX -----
-      // Find a student using the correct schema field: `rollNo`
-      let student = subjectDoc.students.find((s) => s.rollNo === rollNumber);
-
-      if (!student) {
-        // If the student doesn't exist in this subject's list, create them
-        student = {
-          rollNo: rollNumber, // Create the new student object with the correct field name
-          attendance: [],
-        };
-        subjectDoc.students.push(student);
-      }
-
-      // Check if an attendance entry for this specific date already exists
-      const existingDate = student.attendance.find(
-        (a) => a.date.toDateString() === attendanceDate.toDateString()
+      let studentIndex = subjectDoc.students.findIndex(
+        (s) => s.rollNo === rollNumber
       );
 
-      if (existingDate) {
-        existingDate.present = present; // Update if it exists
+      if (studentIndex === -1) {
+        // Student doesn't exist - create and push
+        subjectDoc.students.push({
+          rollNo: rollNumber,
+          attendance: [{ date: attendanceDate, present }], // Add attendance immediately
+        });
       } else {
-        student.attendance.push({ date: attendanceDate, present }); // Add a new entry if it doesn't
+        // Student exists - work with the array reference
+        let student = subjectDoc.students[studentIndex];
+
+        const existingDateIndex = student.attendance.findIndex(
+          (a) => a.date.toDateString() === attendanceDate.toDateString()
+        );
+
+        if (existingDateIndex !== -1) {
+          student.attendance[existingDateIndex].present = present;
+        } else {
+          student.attendance.push({ date: attendanceDate, present });
+        }
       }
     });
 
