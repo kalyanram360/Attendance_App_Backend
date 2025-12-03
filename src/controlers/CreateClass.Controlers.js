@@ -3,6 +3,7 @@ const Teacher = require("../models/Teacher");
 const Student = require("../models/Student");
 const PastClasses = require("../models/PastClass");
 const mongoose = require("mongoose");
+const axios = require("axios");
 
 /**
  * Create a new class with teacher and students
