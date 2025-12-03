@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
  * Create a new class with teacher and students
  * @route POST /api/class/create
  */
+
 const createClass = async (req, res) => {
   try {
     const { teacherEmail, branch, section, year, subject, token } = req.body;
@@ -507,9 +508,9 @@ const archiveClass = async (req, res) => {
         };
 
         // CALL postAttendance
-        await postAttendance(
-          { body: attendanceBody }, // mock req
-          { json: () => {}, status: () => ({ json: () => {} }) } // dummy res
+        await axios.post(
+          "https://attendance-app-backend-zr4c.onrender.com/attendance",
+          attendanceBody
         );
       }
     }

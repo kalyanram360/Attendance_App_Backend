@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-
+const mongoose = require("mongoose");
 // Each attendance entry for each date
 const attendanceEntrySchema = new mongoose.Schema({
   date: { type: Date, required: true },
@@ -38,5 +37,3 @@ const yearSchema = new mongoose.Schema({
 
 // Final Model
 const Attendance = mongoose.model("Attendance", yearSchema);
-
-export default Attendance;

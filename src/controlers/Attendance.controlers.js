@@ -1,5 +1,4 @@
-import express from "express";
-import Attendance from "../models/attendance.model.js";
+const Attendance = require("../models/attendance.js");
 
 const postAttendance = async (req, res) => {
   try {
@@ -112,4 +111,4 @@ const getAttendance = async (req, res) => {
   }
 };
 
-export default { postAttendance, getAttendance };
+module.exports = { postAttendance, getAttendance };

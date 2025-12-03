@@ -27,6 +27,15 @@ const {
   archiveClass,
 } = require("../controlers/CreateClass.Controlers");
 
+const {
+  postAttendance,
+  getAttendance,
+} = require("../controlers/Attendance.controlers");
+
+// Attendance routes
+router.post("/attendance", postAttendance);
+router.get("/attendance", getAttendance);
+
 // Main validation endpoint for Android app
 router.post("/validate", validateCollege);
 
