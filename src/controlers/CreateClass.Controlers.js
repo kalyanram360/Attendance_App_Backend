@@ -214,6 +214,8 @@ const markStudentPresent = async (req, res) => {
             branch: branch.branchName,
             section: section.sectionName,
             year: section.year,
+            Subject: classDoc.subject,
+            Teacher: classDoc.teacher.name,
           };
           break;
         }
@@ -467,13 +469,11 @@ const archiveClass = async (req, res) => {
         token: tokenValue.trim(),
       });
       if (existingPast) {
-        return res
-          .status(409)
-          .json({
-            success: false,
-            message: "This class is already archived",
-            data: null,
-          });
+        return res.status(409).json({
+          success: false,
+          message: "This class is already archived",
+          data: null,
+        });
       }
     }
 
@@ -498,22 +498,18 @@ const archiveClass = async (req, res) => {
       }
     }
 
-    return res
-      .status(201)
-      .json({
-        success: true,
-        message: "Class archived to PastClasses",
-        data: pastDoc,
-      });
+    return res.status(201).json({
+      success: true,
+      message: "Class archived to PastClasses",
+      data: pastDoc,
+    });
   } catch (error) {
     console.error("Archive class error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error while archiving class",
-        data: null,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Server error while archiving class",
+      data: null,
+    });
   }
 };
 
