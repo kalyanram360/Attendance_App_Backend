@@ -1,5 +1,7 @@
 const Attendance = require("../models/Attendance.js");
 
+// "/attendance" - POST
+
 const postAttendance = async (req, res) => {
   try {
     const { year, branch, section, subject, date, attendance } = req.body;

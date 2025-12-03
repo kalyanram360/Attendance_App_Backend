@@ -487,34 +487,6 @@ const archiveClass = async (req, res) => {
       branches: classObject.branches || [],
       completedAt: new Date(),
     });
-    // ADD THIS RIGHT AFTER pastDoc.save()
-
-    // Loop through branches → sections → students
-    for (const branch of pastDoc.branches) {
-      for (const section of branch.sections) {
-        // Build attendance array for this section
-        const attendancePayload = section.students.map((student) => ({
-          rollNumber: student.rollNo,
-          present: student.present, // assuming your class object stores it
-        }));
-
-        // Create the body exactly like postAttendance expects
-        const attendanceBody = {
-          year: section.year,
-          branch: branch.branchName,
-          section: section.sectionName,
-          subject: pastDoc.subject,
-          date: new Date(), // or pastDoc.completedAt
-          attendance: attendancePayload,
-        };
-
-        // CALL postAttendance
-        await axios.post(
-          "https://attendance-app-backend-zr4c.onrender.com/attendance",
-          attendanceBody
-        );
-      }
-    }
 
     await pastDoc.save();
 
