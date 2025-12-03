@@ -37,3 +37,4 @@ const yearSchema = new mongoose.Schema({
 
 // Final Model
 const Attendance = mongoose.model("Attendance", yearSchema);
+module.exports = Attendance;
