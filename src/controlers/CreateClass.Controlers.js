@@ -13,14 +13,22 @@ const axios = require("axios");
 
 const createClass = async (req, res) => {
   try {
-    const { teacherEmail, branch, section, year, subject, token } = req.body;
+    const { teacherEmail, subject, token, sections } = req.body;
+    // sections = [{ year, branch, section }, { year, branch, section }, ...]
 
     // Input validation
-    if (!teacherEmail || !branch || !section || !year || !subject || !token) {
+    if (
+      !teacherEmail ||
+      !subject ||
+      !token ||
+      !sections ||
+      !Array.isArray(sections) ||
+      sections.length === 0
+    ) {
       return res.status(400).json({
         success: false,
         message:
-          "All fields are required: teacherEmail, branch, section, year, subject, token",
+          "Required fields: teacherEmail, subject, token, sections (array)",
         data: null,
       });
     }
@@ -39,9 +47,7 @@ const createClass = async (req, res) => {
     }
 
     // Check if token already exists
-    const existingClass = await NewClass.findOne({
-      token: token.trim(),
-    });
+    const existingClass = await NewClass.findOne({ token: token.trim() });
 
     if (existingClass) {
       return res.status(409).json({
@@ -51,27 +57,57 @@ const createClass = async (req, res) => {
       });
     }
 
-    // Find students matching the criteria
-    const students = await Student.find({
-      branch: branch.trim(),
-      section: section.trim(),
-      year: parseInt(year),
-    }).select("rollno name -_id");
+    // Group sections by branch
+    const branchesMap = new Map();
 
-    if (students.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: `No students found for branch: ${branch}, section: ${section}, year: ${year}`,
-        data: null,
+    for (const sectionData of sections) {
+      const { year, branch, section } = sectionData;
+
+      if (!year || !branch || !section) {
+        return res.status(400).json({
+          success: false,
+          message: "Each section must have year, branch, and section",
+          data: null,
+        });
+      }
+
+      // Find students for this section
+      const students = await Student.find({
+        branch: branch.trim(),
+        section: section.trim(),
+        year: parseInt(year),
+      }).select("rollno name -_id");
+
+      if (students.length === 0) {
+        console.warn(`No students found for ${branch}-${section}-${year}`);
+      }
+
+      const formattedStudents = students.map((student) => ({
+        rollNo: student.rollno,
+        name: student.name,
+        present: false,
+      }));
+
+      // Group by branch
+      const branchKey = branch.trim();
+      if (!branchesMap.has(branchKey)) {
+        branchesMap.set(branchKey, []);
+      }
+
+      branchesMap.get(branchKey).push({
+        sectionName: section.trim(),
+        year: parseInt(year),
+        students: formattedStudents,
       });
     }
 
-    // Format students for NewClass schema
-    const formattedStudents = students.map((student) => ({
-      rollNo: student.rollno,
-      name: student.name,
-      present: false,
-    }));
+    // Convert map to branches array
+    const branches = Array.from(branchesMap.entries()).map(
+      ([branchName, sections]) => ({
+        branchName,
+        sections,
+      })
+    );
 
     // Create new class
     const newClass = new NewClass({
@@ -81,21 +117,21 @@ const createClass = async (req, res) => {
       },
       token: token.trim(),
       subject: subject.trim(),
-      branches: [
-        {
-          branchName: branch.trim(),
-          sections: [
-            {
-              sectionName: section.trim(),
-              year: parseInt(year),
-              students: formattedStudents,
-            },
-          ],
-        },
-      ],
+      branches,
     });
 
     await newClass.save();
+
+    // Calculate total students
+    const totalStudents = branches.reduce(
+      (sum, branch) =>
+        sum +
+        branch.sections.reduce(
+          (sSum, section) => sSum + section.students.length,
+          0
+        ),
+      0
+    );
 
     return res.status(201).json({
       success: true,
@@ -104,12 +140,9 @@ const createClass = async (req, res) => {
         classId: newClass._id,
         token: newClass.token,
         teacher: newClass.teacher,
-        branch: branch.trim(),
-        section: section.trim(),
-        year: parseInt(year),
         subject: subject.trim(),
-        totalStudents: formattedStudents.length,
-        students: formattedStudents,
+        totalStudents,
+        branches,
       },
     });
   } catch (error) {
