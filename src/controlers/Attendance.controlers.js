@@ -13,23 +13,52 @@ const postAttendance = async (req, res) => {
       yearDoc = new Attendance({ year: year, branches: [] });
     }
 
-    let branchDoc = yearDoc.branches.find((b) => b.branchName === branch);
-    if (!branchDoc) {
-      branchDoc = { branchName: branch, sections: [] };
-      yearDoc.branches.push(branchDoc);
-    }
+    // let branchDoc = yearDoc.branches.find((b) => b.branchName === branch);
+    // if (!branchDoc) {
+    //   branchDoc = { branchName: branch, sections: [] };
+    //   yearDoc.branches.push(branchDoc);
+    // }
 
-    let sectionDoc = branchDoc.sections.find((s) => s.sectionName === section);
-    if (!sectionDoc) {
-      sectionDoc = { sectionName: section, subjects: [] };
-      branchDoc.sections.push(sectionDoc);
-    }
+    // let sectionDoc = branchDoc.sections.find((s) => s.sectionName === section);
+    // if (!sectionDoc) {
+    //   sectionDoc = { sectionName: section, subjects: [] };
+    //   branchDoc.sections.push(sectionDoc);
+    // }
 
-    let subjectDoc = sectionDoc.subjects.find((s) => s.subjectName === subject);
-    if (!subjectDoc) {
-      subjectDoc = { subjectName: subject, students: [] };
-      sectionDoc.subjects.push(subjectDoc);
+    // let subjectDoc = sectionDoc.subjects.find((s) => s.subjectName === subject);
+    // if (!subjectDoc) {
+    //   subjectDoc = { subjectName: subject, students: [] };
+    //   sectionDoc.subjects.push(subjectDoc);
+    // }
+    // For branch
+    let branchIndex = yearDoc.branches.findIndex(
+      (b) => b.branchName === branch
+    );
+    if (branchIndex === -1) {
+      yearDoc.branches.push({ branchName: branch, sections: [] });
+      branchIndex = yearDoc.branches.length - 1;
     }
+    let branchDoc = yearDoc.branches[branchIndex]; // Now this is a reference
+
+    // For section
+    let sectionIndex = branchDoc.sections.findIndex(
+      (s) => s.sectionName === section
+    );
+    if (sectionIndex === -1) {
+      branchDoc.sections.push({ sectionName: section, subjects: [] });
+      sectionIndex = branchDoc.sections.length - 1;
+    }
+    let sectionDoc = branchDoc.sections[sectionIndex]; // Reference
+
+    // For subject
+    let subjectIndex = sectionDoc.subjects.findIndex(
+      (s) => s.subjectName === subject
+    );
+    if (subjectIndex === -1) {
+      sectionDoc.subjects.push({ subjectName: subject, students: [] });
+      subjectIndex = sectionDoc.subjects.length - 1;
+    }
+    let subjectDoc = sectionDoc.subjects[subjectIndex]; // Reference
 
     const attendanceDate = new Date(date);
 
