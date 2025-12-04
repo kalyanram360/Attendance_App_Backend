@@ -13,24 +13,6 @@ const postAttendance = async (req, res) => {
       yearDoc = new Attendance({ year: year, branches: [] });
     }
 
-    // let branchDoc = yearDoc.branches.find((b) => b.branchName === branch);
-    // if (!branchDoc) {
-    //   branchDoc = { branchName: branch, sections: [] };
-    //   yearDoc.branches.push(branchDoc);
-    // }
-
-    // let sectionDoc = branchDoc.sections.find((s) => s.sectionName === section);
-    // if (!sectionDoc) {
-    //   sectionDoc = { sectionName: section, subjects: [] };
-    //   branchDoc.sections.push(sectionDoc);
-    // }
-
-    // let subjectDoc = sectionDoc.subjects.find((s) => s.subjectName === subject);
-    // if (!subjectDoc) {
-    //   subjectDoc = { subjectName: subject, students: [] };
-    //   sectionDoc.subjects.push(subjectDoc);
-    // }
-    // For branch
     let branchIndex = yearDoc.branches.findIndex(
       (b) => b.branchName === branch
     );
@@ -78,15 +60,7 @@ const postAttendance = async (req, res) => {
         // Student exists - work with the array reference
         let student = subjectDoc.students[studentIndex];
 
-        const existingDateIndex = student.attendance.findIndex(
-          (a) => a.date.toDateString() === attendanceDate.toDateString()
-        );
-
-        if (existingDateIndex !== -1) {
-          student.attendance[existingDateIndex].present = present;
-        } else {
-          student.attendance.push({ date: attendanceDate, present });
-        }
+        student.attendance.push({ date: attendanceDate, present });
       }
     });
 
