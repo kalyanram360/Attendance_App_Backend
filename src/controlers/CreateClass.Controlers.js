@@ -9,6 +9,7 @@ const axios = require("axios");
  * Create a new class with teacher and students
  * @route POST /api/class/create
  */
+//comitted a message "everything is working fine" before chamges
 
 const createClass = async (req, res) => {
   try {
