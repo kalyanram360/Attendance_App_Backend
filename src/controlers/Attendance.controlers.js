@@ -128,6 +128,7 @@ const postAttendance = async (req, res) => {
 //     res.status(500).json({ error: "Server Error" });
 //   }
 // };
+//
 const getAttendance = async (req, res) => {
   try {
     const { year, branch, section, subject, date, from, to } = req.query;
