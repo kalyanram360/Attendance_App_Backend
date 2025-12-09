@@ -549,6 +549,41 @@ const archiveClass = async (req, res) => {
   }
 };
 
+//delete class by token
+const deleteClassByToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Token is required",
+        data: null,
+      });
+    }
+    const deletedClass = await NewClass.findOneAndDelete({
+      token: token.trim(),
+    });
+    if (!deletedClass) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+        data: null,
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Class deleted successfully",
+      data: deletedClass,
+    });
+  } catch (error) {
+    console.error("Delete class error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while deleting class",
+      data: null,
+    });
+  }
+};
 // ...existing code...
 
 module.exports = {
@@ -558,4 +593,5 @@ module.exports = {
   getClassBranches,
   getAttendanceSummary,
   archiveClass,
+  deleteClassByToken,
 };

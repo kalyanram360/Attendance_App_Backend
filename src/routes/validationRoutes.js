@@ -25,6 +25,7 @@ const {
   getClassBranches,
   getAttendanceSummary,
   archiveClass,
+  deleteClassByToken,
 } = require("../controlers/CreateClass.Controlers");
 
 const {
@@ -61,5 +62,6 @@ router.patch("/class/mark/:token/:rollNo", markStudentPresent);
 router.get("/class/branches/:classId", getClassBranches);
 router.get("/class/attendance-summary/:classId", getAttendanceSummary);
 router.post("/class/archive", archiveClass);
+router.delete("/class/delete/:token", deleteClassByToken);
 
 module.exports = router;
