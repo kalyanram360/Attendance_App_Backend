@@ -104,17 +104,28 @@ const getAllStudents = async (req, res) => {
 };
 
 /**
- * Check if student exists and return complete info
- * @route GET /api/student/check/:collegeEmail
+ * Check if student exists and verify activation code
+ * @route GET /api/student/check/:collegeEmail/:activationCode
  */
 const checkStudent = async (req, res) => {
   try {
-    const { collegeEmail } = req.params;
+    const { collegeEmail, activationCode } = req.params;
 
     if (!collegeEmail) {
       return res.status(400).json({
         success: false,
         message: "College email is required",
+        exists: false,
+        data: null,
+      });
+    }
+
+    // Verify activation code
+    const expectedCode = process.env.ACT_STUDENT || "GVP123";
+    if (activationCode && activationCode.trim() !== expectedCode.trim()) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid activation code",
         exists: false,
         data: null,
       });
@@ -128,7 +139,7 @@ const checkStudent = async (req, res) => {
     if (student) {
       return res.status(200).json({
         success: true,
-        message: "Student found in database",
+        message: "Student found and verified",
         exists: true,
         data: student,
       });

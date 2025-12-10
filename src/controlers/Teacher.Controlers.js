@@ -100,17 +100,28 @@ const getAllTeachers = async (req, res) => {
 };
 
 /**
- * Check if teacher exists and return complete info
- * @route GET /api/teacher/check/:collegeEmail
+ * Check if teacher exists and verify activation code
+ * @route GET /api/teacher/check/:collegeEmail/:activationCode
  */
 const checkTeacher = async (req, res) => {
   try {
-    const { collegeEmail } = req.params;
+    const { collegeEmail, activationCode } = req.params;
 
     if (!collegeEmail) {
       return res.status(400).json({
         success: false,
         message: "College email is required",
+        exists: false,
+        data: null,
+      });
+    }
+
+    // Verify activation code
+    const expectedCode = process.env.ACT_TEACHER || "GVP123";
+    if (activationCode && activationCode.trim() !== expectedCode.trim()) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid activation code",
         exists: false,
         data: null,
       });
@@ -124,7 +135,7 @@ const checkTeacher = async (req, res) => {
     if (teacher) {
       return res.status(200).json({
         success: true,
-        message: "Teacher found in database",
+        message: "Teacher found and verified",
         exists: true,
         data: teacher,
       });

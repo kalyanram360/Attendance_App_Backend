@@ -48,12 +48,12 @@ router.get("/check/:collegeEmail/:collegeName/:activationCode", checkCollege);
 // Student routes
 router.post("/student/register", registerStudent);
 router.get("/students", getAllStudents);
-router.get("/student/check/:collegeEmail", checkStudent);
+router.get("/student/check/:collegeEmail/:activationCode", checkStudent);
 
 // Teacher routes
 router.post("/teacher/register", registerTeacher);
 router.get("/teachers", getAllTeachers);
-router.get("/teacher/check/:collegeEmail", checkTeacher);
+router.get("/teacher/check/:collegeEmail/:activationCode", checkTeacher);
 
 //class routes
 router.post("/class/create", createClass);
