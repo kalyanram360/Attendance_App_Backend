@@ -162,15 +162,63 @@ const checkStudent = async (req, res) => {
   }
 };
 
-/**
- * Get all teachers
- * @route GET /api/teachers
- */
+//check students along with activation code
+const checkStudentWithActivation = async (req, res) => {
+  try {
+    const { collegeEmail, activationCode } = req.params;
+    if (!collegeEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "College email is required",
+        exists: false,
+        data: null,
+      });
+    }
+    // Verify activation code
+    const expectedCode = process.env.ACT_STUDENT || "GVP123";
+    if (activationCode && activationCode.trim() !== expectedCode.trim()) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid activation code",
+        exists: false,
+        data: null,
+      });
+    }
+    // Find student by email
+    const student = await Student.findOne({
+      collegeEmail: decodeURIComponent(collegeEmail).toLowerCase().trim(),
+    }).select("-__v");
+    if (student) {
+      return res.status(200).json({
+        success: true,
+        message: "Student found and verified",
+        exists: true,
+        data: student,
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: "Student not found in database",
+        exists: false,
+        data: null,
+      });
+    }
+  } catch (error) {
+    console.error("Check student error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during student check",
+      exists: false,
+      data: null,
+    });
+  }
+};
 
 module.exports = {
   registerStudent,
   checkStudent,
   getAllStudents,
+  checkStudentWithActivation,
 };
 
 //

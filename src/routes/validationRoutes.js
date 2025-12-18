@@ -16,6 +16,7 @@ const {
   registerStudent,
   getAllStudents,
   checkStudent,
+  checkStudentWithActivation,
 } = require("../controlers/Student.controlers");
 
 const {
@@ -49,6 +50,10 @@ router.get("/check/:collegeEmail/:collegeName/:activationCode", checkCollege);
 router.post("/student/register", registerStudent);
 router.get("/students", getAllStudents);
 router.get("/student/check/:collegeEmail/:activationCode", checkStudent);
+router.get(
+  "/student/check-with-activation/:collegeEmail/:activationCode",
+  checkStudentWithActivation
+);
 
 // Teacher routes
 router.post("/teacher/register", registerTeacher);
