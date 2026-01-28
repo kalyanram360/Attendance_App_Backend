@@ -22,7 +22,7 @@ const StudentSchema = new mongoose.Schema(
       min: 0,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const SectionSchema = new mongoose.Schema(
@@ -41,7 +41,7 @@ const SectionSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const BranchSchema = new mongoose.Schema(
@@ -56,7 +56,7 @@ const BranchSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const PastClassesSchema = new mongoose.Schema(
@@ -96,7 +96,7 @@ const PastClassesSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Index for faster queries
