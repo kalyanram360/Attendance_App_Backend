@@ -17,6 +17,11 @@ const StudentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    failedTokens: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   { _id: false }
 ); // don't create subdocument _id for each student unless you want it

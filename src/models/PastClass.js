@@ -16,6 +16,11 @@ const StudentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    failedTokens: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   { _id: false }
 );
@@ -95,7 +100,6 @@ const PastClassesSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-PastClassesSchema.index({ token: 1 });
 PastClassesSchema.index({ "teacher.email": 1 });
 
 module.exports = mongoose.model("PastClasses", PastClassesSchema);

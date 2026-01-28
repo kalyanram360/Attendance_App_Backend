@@ -15,7 +15,9 @@ app.use(morgan("dev")); // Logging
 
 // Routes
 const validationRoutes = require("./routes/validationRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 app.use("/api", validationRoutes);
+app.use("/api", dashboardRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
